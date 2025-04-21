@@ -4,7 +4,7 @@
   "description": "Scroller for a map that is too big for the viewport",
   "main": "index.html",
   "scripts": {
-    "start": "http-server .",
+    "start": "npx serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
