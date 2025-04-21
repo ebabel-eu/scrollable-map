@@ -52,8 +52,7 @@
 
 <script>
   const tileSize = 512;
-  const zoom = 2;
-  const mapTiles = 2 ** zoom;
+  const mapTiles = 20;
   const map = document.getElementById("map");
   const viewport = document.getElementById("viewport");
 
@@ -91,7 +90,7 @@
           tile.style.top = `${y * tileSize * scale}px`;
           tile.style.width = `${tileSize * scale}px`;
           tile.style.height = `${tileSize * scale}px`;
-          tile.style.backgroundImage = `url(tiles/${zoom}/${x}_${y}.jpg)`;
+          tile.style.backgroundImage = `url(tiles/${x}_${y}.jpg)`;
           map.appendChild(tile);
         }
       }
