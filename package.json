@@ -1,0 +1,23 @@
+{
+  "name": "scrollable-map",
+  "version": "1.0.0",
+  "description": "Scroller for a map that is too big for the viewport",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ebabel-eu/scrollable-map.git"
+  },
+  "keywords": [
+    "game"
+  ],
+  "author": "Thomas Amar <hello@ebabel.eu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ebabel-eu/scrollable-map/issues"
+  },
+  "homepage": "https://github.com/ebabel-eu/scrollable-map#readme"
+}

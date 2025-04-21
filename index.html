@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scrollable Map</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    #viewport {
+      width: 100vw;
+      height: 100vh;
+      overflow: scroll;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      position: relative;
+      background: #333;
+    }
+
+    #viewport::-webkit-scrollbar {
+      display: none;  /* Chrome, Safari and Opera */
+    }
+
+    #map {
+      width: 4096px;
+      height: 3072px;
+      background-image: url('faerun.jpg'); /* or a pattern */
+      background-size: cover;
+      cursor: grab;
+    }
+    #map.dragging {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="map"></div>
+</div>
+
+<script>
+  // Optional drag-to-scroll functionality
+  const map = document.getElementById("map");
+  const viewport = document.getElementById("viewport");
+
+  let isDragging = false;
+  let startX, startY, scrollLeft, scrollTop;
+
+  map.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    map.classList.add("dragging");
+    startX = e.clientX;
+    startY = e.clientY;
+    scrollLeft = viewport.scrollLeft;
+    scrollTop = viewport.scrollTop;
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    viewport.scrollLeft = scrollLeft - dx;
+    viewport.scrollTop = scrollTop - dy;
+  });
+
+  document.addEventListener("mouseup", () => {
+    isDragging = false;
+    map.classList.remove("dragging");
+  });
+
+  // Optional: center the map on load
+  window.onload = () => {
+    viewport.scrollLeft = (map.scrollWidth - viewport.clientWidth) / 2;
+    viewport.scrollTop = (map.scrollHeight - viewport.clientHeight) / 2;
+  };
+</script>
+
+</body>
+</html>
