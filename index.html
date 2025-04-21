@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Interactive Scrollable + Zoomable Map</title>
+  <title>Interactive Tiled Map Viewer</title>
   <style>
     html, body {
       margin: 0;
@@ -17,17 +17,16 @@
       overflow: scroll;
       position: relative;
       background: #111;
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;     /* Firefox */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     #viewport::-webkit-scrollbar {
-      display: none;  /* Chrome, Safari */
+      display: none;
     }
 
     #map {
-      width: 4096px;
-      height: 3072px;
+      position: relative;
       transform-origin: top left;
       cursor: grab;
     }
@@ -36,27 +35,91 @@
       cursor: grabbing;
     }
 
-    #map img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      user-select: none;
-      pointer-events: none; /* Makes dragging smoother */
+    .tile {
+      position: absolute;
+      width: 512px;
+      height: 512px;
+      background-size: cover;
+      background-position: center;
     }
   </style>
 </head>
 <body>
 
 <div id="viewport">
-  <div id="map">
-    <img src="faerun.jpg" alt="Map">
-    <!-- Replace the src above with your own 4096x3072 map image -->
-  </div>
+  <div id="map"></div>
 </div>
 
 <script>
+  const tileSize = 512;
+  const zoom = 2;
+  const mapTiles = 2 ** zoom;
   const map = document.getElementById("map");
   const viewport = document.getElementById("viewport");
+
+  let scale = 1;
+  const ZOOM_FACTOR = 0.1;
+  const MIN_SCALE = 0.75;
+  const MAX_SCALE = 2;
+
+  // Set initial size of map container
+  function updateMapSize() {
+    map.style.width = `${tileSize * mapTiles * scale}px`;
+    map.style.height = `${tileSize * mapTiles * scale}px`;
+  }
+
+  // Load tiles that are currently visible
+  function loadTiles() {
+    map.innerHTML = '';
+    const rect = viewport.getBoundingClientRect();
+    const viewLeft = viewport.scrollLeft / scale;
+    const viewTop = viewport.scrollTop / scale;
+    const viewRight = viewLeft + rect.width / scale;
+    const viewBottom = viewTop + rect.height / scale;
+
+    const startX = Math.floor(viewLeft / tileSize);
+    const startY = Math.floor(viewTop / tileSize);
+    const endX = Math.ceil(viewRight / tileSize);
+    const endY = Math.ceil(viewBottom / tileSize);
+
+    for (let x = startX; x < endX; x++) {
+      for (let y = startY; y < endY; y++) {
+        if (x >= 0 && y >= 0 && x < mapTiles && y < mapTiles) {
+          const tile = document.createElement('div');
+          tile.className = 'tile';
+          tile.style.left = `${x * tileSize * scale}px`;
+          tile.style.top = `${y * tileSize * scale}px`;
+          tile.style.width = `${tileSize * scale}px`;
+          tile.style.height = `${tileSize * scale}px`;
+          tile.style.backgroundImage = `url(tiles/${zoom}/${x}_${y}.jpg)`;
+          map.appendChild(tile);
+        }
+      }
+    }
+  }
+
+  // Zoom logic
+  viewport.addEventListener("wheel", (e) => {
+    e.preventDefault();
+
+    const oldScale = scale;
+    scale *= e.deltaY < 0 ? (1 + ZOOM_FACTOR) : (1 - ZOOM_FACTOR);
+    scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+    const scaleChange = scale / oldScale;
+
+    const rect = map.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const scrollX = viewport.scrollLeft;
+    const scrollY = viewport.scrollTop;
+
+    viewport.scrollLeft = (mouseX * scaleChange + scrollX) - mouseX;
+    viewport.scrollTop = (mouseY * scaleChange + scrollY) - mouseY;
+
+    updateMapSize();
+    loadTiles();
+  }, { passive: false });
 
   // Drag-to-scroll
   let isDragging = false;
@@ -77,6 +140,7 @@
     const dy = e.clientY - startY;
     viewport.scrollLeft = scrollLeft - dx;
     viewport.scrollTop = scrollTop - dy;
+    loadTiles();
   });
 
   document.addEventListener("mouseup", () => {
@@ -84,39 +148,15 @@
     map.classList.remove("dragging");
   });
 
-  // Zoom with mouse wheel
-  let scale = 1;
-  const ZOOM_FACTOR = 0.1;
-  const MIN_SCALE = 0.2;
-  const MAX_SCALE = 4;
-
-  viewport.addEventListener("wheel", (e) => {
-    e.preventDefault();
-
-    const rect = map.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const oldScale = scale;
-    scale *= e.deltaY < 0 ? (1 + ZOOM_FACTOR) : (1 - ZOOM_FACTOR);
-    scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
-
-    const scaleChange = scale / oldScale;
-
-    const scrollX = viewport.scrollLeft;
-    const scrollY = viewport.scrollTop;
-
-    viewport.scrollLeft = (mouseX * scaleChange + scrollX) - mouseX;
-    viewport.scrollTop = (mouseY * scaleChange + scrollY) - mouseY;
-
-    map.style.transform = `scale(${scale})`;
-  }, { passive: false });
-
-  // Center map on load
+  // Initial setup
   window.onload = () => {
+    updateMapSize();
+    loadTiles();
     viewport.scrollLeft = (map.offsetWidth - viewport.clientWidth) / 2;
     viewport.scrollTop = (map.offsetHeight - viewport.clientHeight) / 2;
   };
+
+  viewport.addEventListener("scroll", loadTiles);
 </script>
 
 </body>
